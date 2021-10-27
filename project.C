@@ -12,8 +12,8 @@
 
     While Commiting , Put this kind of message
 
-    < Commit_Number >_commit_< Your_Name >
-    ex. first_commit_Akshat
+    < Commit_Number >_commit_< Your_Name >_< tell in brief what you did>
+    ex. first_commit_Akshat_initializing_the code
 */
 
 // Including standard libraries
@@ -128,6 +128,16 @@ void inorder_traversal(struct node *root)
     printf(" %d timestamp: %d \n", root->value);
     inorder_traversal(root->right);
 }
+/*
+    Function to insert a number in WAVL Tree
+    Arguement are root pointer of the tree in which we want to insert and number which we want to insert
+    In first 6 lines we find the position to insert the number and insert it there 
+    from then on we perform Bottom's up rebalancing up the tree
+    1. If node is 0,1 , we do promote and move up
+    2. If node is 0,2 
+            < Pranav Work >
+    3. If above two are not specified , then that node is balanced, move up the tree, for Proof, Check Report Page No.-
+*/
 struct node *insert(struct node *root, int number)
 {
     if (root == NULL)
@@ -136,16 +146,14 @@ struct node *insert(struct node *root, int number)
         root->right = insert(root->right, number);
     else
         root->left = insert(root->left, number);
-
-    int rd = root->rank - root->right->rank;
-    int ld = root->rank - root->left->rank;
-    if ((rd == 1 & ld == 0) || (rd == 0 & ld == 1))
+    if (isABnode(root, 0, 1))
     {
-        root->rank++;
+        Promote(root);
         return root;
     }
-    else if ((rd == 2 && ld == 0) || (rd == 0 && ld == 2))
+    else if (isABnode(root, 0, 2))
     {
+
     }
     else
         return root;
@@ -153,5 +161,15 @@ struct node *insert(struct node *root, int number)
 
 int main()
 {
-    
+    struct node * root=NULL;
+    printf("Enter the number you want to insert, Please press Q to quit the sequence of Inserting the number \n");
+    char a='a';
+    while( a!='Q')
+    {
+        scanf(" %c",&a);
+        if( a=='Q')
+            continue;
+        else
+            root=insert(root,a-'0');
+    }
 }
