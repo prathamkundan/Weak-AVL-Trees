@@ -76,6 +76,7 @@ TreeNode *RightRotate(TreeNode *Y)
     X->right = Y;
     X->parent = pY;
     Y->parent = X;
+    if (Y->left) Y->left->parent = Y;   // Ensuring correctness of parents
     return X;
 }
 
@@ -89,6 +90,7 @@ TreeNode *LeftRotate(TreeNode *X)
     Y->left = X;
     Y->parent = pX;
     X->parent = Y;
+    if (X->right)X->right->parent = X;  // Ensuring correctness of parents
     return Y;
 }
 
@@ -148,7 +150,7 @@ struct node *insert(struct node *root, int number)
         root->left = insert(root->left, number);
     if (isABnode(root, 0, 1))
     {
-        Promote(root);
+        root = Promote(root);
         return root;
     }
     else if (isABnode(root, 0, 2))
