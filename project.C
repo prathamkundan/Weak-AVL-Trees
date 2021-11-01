@@ -1,11 +1,11 @@
 // Wavl Tree - Project CS201, Academic Year :2021-22 , Fall Semester
 
 /*
-    General Info 
+    General Info
 
     Team Memeber
     1. Name : Pranavkumar Mallela   Entry Number : 2020CSB1112
-    2. Name : Akshat Toolaj Sinha   Entry Number : 2020CSB1068  
+    2. Name : Akshat Toolaj Sinha   Entry Number : 2020CSB1068
     3. Name : Pratham kundan        Entry Number : 2020CSB1114
 
     Whenever you are commenting, do puts substantial commenting to let other person what you are doing
@@ -50,6 +50,7 @@ TreeNode *GetNode(int key)
     NewNode->right = NULL;
     NewNode->rank = 0;
     NewNode->parent = NULL;
+    return NewNode;
 }
 
 // Utility function to return a node after increasing its rank
@@ -68,30 +69,32 @@ TreeNode *Demote(TreeNode *X)
 
 // Please note: In the paper if it is said that node x is right rotated it means that the function
 // RightRotate(p(x)) will be called. p(x) is the pivot.
-TreeNode *RightRotate(TreeNode *Y)
+//Pranav: changed variable names to z,x,y
+TreeNode *RightRotate(TreeNode *z)
 { // Right Rotate about a pivot
-    TreeNode *X = Y->left;
-    TreeNode *pY = Y->parent;
-    Y->left = X->right;
-    X->right = Y;
-    X->parent = pY;
-    Y->parent = X;
-    if (Y->left) Y->left->parent = Y;   // Ensuring correctness of parents
-    return X;
+    TreeNode *x = z->left;
+    TreeNode *pz = z->parent;
+    z->left = x->right;
+    x->right = z;
+    x->parent = pz;
+    z->parent = x;
+    if (z->left) z->left->parent = z;   // Ensuring correctness of parents
+    return x;
 }
 
 // Please note: In the paper if it is said that node x is left rotated it means that the function
 // LeftRotate(p(x)) will be called. p(x) is the pivot.
-TreeNode *LeftRotate(TreeNode *X)
+//Pranav: changed variable names to z,x,y
+TreeNode *LeftRotate(TreeNode *z)
 { // Left Rotate about a pivot
-    TreeNode *Y = X->right;
-    TreeNode *pX = X->parent;
-    X->right = Y->left;
-    Y->left = X;
-    Y->parent = pX;
-    X->parent = Y;
-    if (X->right)X->right->parent = X;  // Ensuring correctness of parents
-    return Y;
+    TreeNode *x = z->right;
+    TreeNode *pz = z->parent;
+    z->right = x->left;
+    x->left = z;
+    x->parent = pz;
+    z->parent = x;
+    if (z->right)z->right->parent = z;  // Ensuring correctness of parents
+    return x;
 }
 
 // Utility function to find rank of any kind of node (even NULL nodes)
@@ -118,7 +121,7 @@ bool isAchild(TreeNode *N, int A)
     return false;
 }
 
-/* 
+/*
     Function to write inorder traversal of Binary Search Tree
     We will include something later to help us know structure of the tree
 */
@@ -127,16 +130,16 @@ void inorder_traversal(struct node *root)
     if (root == NULL)
         return;
     inorder_traversal(root->left);
-    printf(" %d timestamp: %d \n", root->value);
+    printf("%d->%d ", root->value,root->rank);
     inorder_traversal(root->right);
 }
 /*
     Function to insert a number in WAVL Tree
     Arguement are root pointer of the tree in which we want to insert and number which we want to insert
-    In first 6 lines we find the position to insert the number and insert it there 
+    In first 6 lines we find the position to insert the number and insert it there
     from then on we perform Bottom's up rebalancing up the tree
     1. If node is 0,1 , we do promote and move up
-    2. If node is 0,2 
+    2. If node is 0,2
             < Pranav Work >
     3. If above two are not specified , then that node is balanced, move up the tree, for Proof, Check Report Page No.-
 */
@@ -145,9 +148,15 @@ struct node *insert(struct node *root, int number)
     if (root == NULL)
         return GetNode(number);
     else if (number > root->value)
-        root->right = insert(root->right, number);
+        {
+            root->right = insert(root->right, number);
+            root->right->parent=root;
+        }
     else
-        root->left = insert(root->left, number);
+        {
+            root->left = insert(root->left, number);
+            root->left->parent=root;
+        }
     if (isABnode(root, 0, 1))
     {
         root = Promote(root);
@@ -155,7 +164,54 @@ struct node *insert(struct node *root, int number)
     }
     else if (isABnode(root, 0, 2))
     {
+        int f;//flag to represent how z(root-(0,2) node), x(child of z), y(1-child or 2-child) are connected
+        TreeNode *x, *y;
+        if(FindRank(root)-FindRank(root->right)==0)//Finding which side has rank diff=0, and setting x and y correspondingly
+        {
+            f=0;
+            x=root->right;
+            y=x->left;
+        }
+        else
+        {
+            f=1;
+            x=root->left;
+            y=x->right;
+        }
+        if(y==NULL)//y is NULL (single rotation case)
+        {
+            if(f)RightRotate(root);
+            else LeftRotate(root);
+            //printf("Completed rotation(1)!\n");
+            Demote(root);
+            return root->parent;
+        }
+        else if(isAchild(y,2))//y is a 2-child (single rotation case)
+        {
+            if(f)RightRotate(root);
+            else LeftRotate(root);
+            //printf("Completed rotation(1)!\n");
+            Demote(root);
+            return root->parent;
+        }
+        else//y is a 1-child (double rotation case)
+        {
+            if(f)
+            {
+                LeftRotate(x);
+                RightRotate(root);
+            }
+            else
+            {
+                RightRotate(x);
+                LeftRotate(root);
+            }
+            //printf("Completed rotation(2)!\n");
+            Demote(x);
+            Demote(root);
+            return Promote(y);
 
+        }
     }
     else
         return root;
@@ -174,4 +230,5 @@ int main()
         else
             root=insert(root,a-'0');
     }
+    inorder_traversal(root);
 }
