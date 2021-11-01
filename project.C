@@ -162,7 +162,7 @@ struct node *insert(struct node *root, int number)
         root = Promote(root);
         return root;
     }
-    else if (isABnode(root, 0, 2))
+    else if (isABnode(root, 0, 2))//Enter if root is a 0,2 node
     {
         int f;//flag to represent how z(root-(0,2) node), x(child of z), y(1-child or 2-child) are connected
         TreeNode *x, *y;
