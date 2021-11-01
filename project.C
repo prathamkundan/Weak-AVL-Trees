@@ -123,7 +123,7 @@ bool isAchild(TreeNode *N, int A)
 
 /*
     Function to write inorder traversal of Binary Search Tree
-    We will include something later to help us know structure of the tree
+    We will include something later to help us know structure of the tree like giving timestamp
 */
 void inorder_traversal(struct node *root)
 {
