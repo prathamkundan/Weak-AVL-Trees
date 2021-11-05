@@ -73,7 +73,7 @@ TreeNode *Demote(TreeNode *X)
 TreeNode *RightRotate(TreeNode *z)
 { // Right Rotate about a pivot
     TreeNode *x = z->left;
-    TreeNode *pz = z->parent; 
+    TreeNode *pz = z->parent;
     z->left = x->right;
     x->right = z;
     x->parent = pz;
@@ -89,7 +89,7 @@ TreeNode *RightRotate(TreeNode *z)
 TreeNode *LeftRotate(TreeNode *z)
 { // Left Rotate about a pivot
     TreeNode *x = z->right;
-    TreeNode *pz = z->parent; 
+    TreeNode *pz = z->parent;
     z->right = x->left;
     x->left = z;
     x->parent = pz;
@@ -135,6 +135,61 @@ void inorder_traversal(struct node *root)
     printf("%d->%d\n ", root->value, root->rank);
     inorder_traversal(root->right);
 }
+
+/*
+    Function to search for a node with given key value and return node
+*/
+TreeNode *search(TreeNode *R, int key)
+{
+    if (R == NULL)
+        return NULL;
+    if (R->value == key)
+        return R;
+    if (R->value > key)
+        return search(R->left, key);
+    if (R->value < key)
+        return search(R->right, key);
+}
+
+/*
+    Function to return the min node in a given subtree
+*/
+TreeNode *MinNode(TreeNode *R)
+{
+    if (R == NULL)
+        return NULL;
+    if (R->left == NULL)
+        return R;
+    else
+        return MinNode(R->left);
+}
+
+/*
+    Function to return the max node in a given subtree
+*/
+TreeNode *MaxNode(TreeNode *R)
+{
+    if (R == NULL)
+        return NULL;
+    if (R->right == NULL)
+        return R;
+    else
+        return MaxNode(R->right);
+}
+
+/*
+    Function to return the sibling of a given node if exists
+*/
+TreeNode *Sibling(TreeNode *N)
+{
+    TreeNode *P = N->parent;
+    if (P)
+    {
+        return (P->left == N) ? P->right : P->left;
+    }
+    return NULL;
+}
+
 /*
     Function to insert a number in WAVL Tree
     Arguement are root pointer of the tree in which we want to insert and number which we want to insert
@@ -184,12 +239,12 @@ struct node *insert(struct node *root, int number)
         {
             // I think here is the error
             if (f)
-            {    
+            {
                 root = RightRotate(root);
                 Demote(root->right);
             }
             else
-            {    
+            {
                 root = LeftRotate(root);
                 Demote(root->left);
             }
@@ -204,23 +259,23 @@ struct node *insert(struct node *root, int number)
             else
                 root = LeftRotate(root);
             //printf("Completed rotation(1)!\n");
-           root =  Demote(root);
+            root = Demote(root);
             return root;
         }
         else //y is a 1-child (double rotation case)
         {
             if (f)
             {
-                x= LeftRotate(x);
+                x = LeftRotate(x);
                 root = RightRotate(root);
             }
             else
             {
-                x= RightRotate(x);
+                x = RightRotate(x);
                 root = LeftRotate(root);
             }
             //printf("Completed rotation(2)!\n");
-            x= Demote(x);
+            x = Demote(x);
             root = Demote(root);
             return Promote(y);
         }
@@ -229,18 +284,47 @@ struct node *insert(struct node *root, int number)
         return root;
 }
 
+/*
+    Function to delete a node from a WAVL tree and perform bottom up rebalancing
+*/
+
+TreeNode *Delete(TreeNode *R, int key)
+{
+    TreeNode *N = search(R, key);
+    if (N != NULL)
+    {
+        if (N->rank == 0)
+        {
+            // More code here
+        }
+        else
+        {
+            TreeNode *S = MinNode(N->right);
+            if (S == N || S == NULL)
+                S = MaxNode(N->left);
+            int k = S->value;
+            R = Delete(R, k);
+            TreeNode *S1 = search(R, key);
+            S1->value = k;
+        }
+        return R;
+    }
+    else
+        return R;
+}
+
 int main()
 {
     struct node *root = NULL;
     printf("Enter the number you want to insert, Please press Q to quit the sequence of Inserting the number \n");
-    char x='A';
+    char x = 'A';
     while (x != 'Q')
     {
-        scanf(" %c",&x);
-        if (x=='Q')
+        scanf(" %c", &x);
+        if (x == 'Q')
             break;
         else
-            root = insert(root, x-'0');
+            root = insert(root, x - '0');
     }
     inorder_traversal(root);
 }
