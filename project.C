@@ -73,12 +73,13 @@ TreeNode *Demote(TreeNode *X)
 TreeNode *RightRotate(TreeNode *z)
 { // Right Rotate about a pivot
     TreeNode *x = z->left;
-    TreeNode *pz = z->parent;
+    TreeNode *pz = z->parent; 
     z->left = x->right;
     x->right = z;
     x->parent = pz;
     z->parent = x;
-    if (z->left) z->left->parent = z;   // Ensuring correctness of parents
+    if (z->left)
+        z->left->parent = z; // Ensuring correctness of parents
     return x;
 }
 
@@ -88,12 +89,13 @@ TreeNode *RightRotate(TreeNode *z)
 TreeNode *LeftRotate(TreeNode *z)
 { // Left Rotate about a pivot
     TreeNode *x = z->right;
-    TreeNode *pz = z->parent;
+    TreeNode *pz = z->parent; 
     z->right = x->left;
     x->left = z;
     x->parent = pz;
     z->parent = x;
-    if (z->right)z->right->parent = z;  // Ensuring correctness of parents
+    if (z->right)
+        z->right->parent = z; // Ensuring correctness of parents
     return x;
 }
 
@@ -130,7 +132,7 @@ void inorder_traversal(struct node *root)
     if (root == NULL)
         return;
     inorder_traversal(root->left);
-    printf("%d->%d ", root->value,root->rank);
+    printf("%d->%d\n ", root->value, root->rank);
     inorder_traversal(root->right);
 }
 /*
@@ -148,69 +150,79 @@ struct node *insert(struct node *root, int number)
     if (root == NULL)
         return GetNode(number);
     else if (number > root->value)
-        {
-            root->right = insert(root->right, number);
-            root->right->parent=root;
-        }
+    {
+        root->right = insert(root->right, number);
+        root->right->parent = root;
+    }
     else
-        {
-            root->left = insert(root->left, number);
-            root->left->parent=root;
-        }
+    {
+        root->left = insert(root->left, number);
+        root->left->parent = root;
+    }
     if (isABnode(root, 0, 1))
     {
-        root = Promote(root);
-        return root;
+        // root = Promote(root);
+        return Promote(root);
     }
-    else if (isABnode(root, 0, 2))//Enter if root is a 0,2 node
+    else if (isABnode(root, 0, 2)) //Enter if root is a 0,2 node
     {
-        int f;//flag to represent how z(root-(0,2) node), x(child of z), y(1-child or 2-child) are connected
+        int f; //flag to represent how z(root-(0,2) node), x(child of z), y(1-child or 2-child) are connected
         TreeNode *x, *y;
-        if(FindRank(root)-FindRank(root->right)==0)//Finding which side has rank diff=0, and setting x and y correspondingly
+        if (FindRank(root) - FindRank(root->right) == 0) //Finding which side has rank diff=0, and setting x and y correspondingly
         {
-            f=0;
-            x=root->right;
-            y=x->left;
+            f = 0;
+            x = root->right;
+            y = x->left;
         }
         else
         {
-            f=1;
-            x=root->left;
-            y=x->right;
+            f = 1;
+            x = root->left;
+            y = x->right;
         }
-        if(y==NULL)//y is NULL (single rotation case)
+        if (y == NULL) //y is NULL (single rotation case)
         {
-            if(f)RightRotate(root);
-            else LeftRotate(root);
+            // I think here is the error
+            if (f)
+            {    
+                root = RightRotate(root);
+                Demote(root->right);
+            }
+            else
+            {    
+                root = LeftRotate(root);
+                Demote(root->left);
+            }
             //printf("Completed rotation(1)!\n");
-            Demote(root);
-            return root->parent;
+            // root = Demote(root);
+            return root;
         }
-        else if(isAchild(y,2))//y is a 2-child (single rotation case)
+        else if (isAchild(y, 2)) //y is a 2-child (single rotation case)
         {
-            if(f)RightRotate(root);
-            else LeftRotate(root);
+            if (f)
+                root = RightRotate(root);
+            else
+                root = LeftRotate(root);
             //printf("Completed rotation(1)!\n");
-            Demote(root);
-            return root->parent;
+           root =  Demote(root);
+            return root;
         }
-        else//y is a 1-child (double rotation case)
+        else //y is a 1-child (double rotation case)
         {
-            if(f)
+            if (f)
             {
-                LeftRotate(x);
-                RightRotate(root);
+                x= LeftRotate(x);
+                root = RightRotate(root);
             }
             else
             {
-                RightRotate(x);
-                LeftRotate(root);
+                x= RightRotate(x);
+                root = LeftRotate(root);
             }
             //printf("Completed rotation(2)!\n");
-            Demote(x);
-            Demote(root);
+            x= Demote(x);
+            root = Demote(root);
             return Promote(y);
-
         }
     }
     else
@@ -219,16 +231,16 @@ struct node *insert(struct node *root, int number)
 
 int main()
 {
-    struct node * root=NULL;
+    struct node *root = NULL;
     printf("Enter the number you want to insert, Please press Q to quit the sequence of Inserting the number \n");
-    char a='a';
-    while( a!='Q')
+    char x='A';
+    while (x != 'Q')
     {
-        scanf(" %c",&a);
-        if( a=='Q')
-            continue;
+        scanf(" %c",&x);
+        if (x=='Q')
+            break;
         else
-            root=insert(root,a-'0');
+            root = insert(root, x-'0');
     }
     inorder_traversal(root);
 }
