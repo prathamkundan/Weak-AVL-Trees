@@ -74,6 +74,7 @@ TreeNode *RightRotate(TreeNode *z)
 { // Right Rotate about a pivot
     TreeNode *x = z->left;
     TreeNode *pz = z->parent;
+
     z->left = x->right;
     x->right = z;
     x->parent = pz;
@@ -235,7 +236,7 @@ struct node *insert(struct node *root, int number)
             x = root->left;
             y = x->right;
         }
-        if (y == NULL) //y is NULL (single rotation case)
+        if (y == NULL || isAchild(y, 2)) //y is NULL (single rotation case)
         {
             // I think here is the error
             if (f)
@@ -252,32 +253,24 @@ struct node *insert(struct node *root, int number)
             // root = Demote(root);
             return root;
         }
-        else if (isAchild(y, 2)) //y is a 2-child (single rotation case)
-        {
-            if (f)
-                root = RightRotate(root);
-            else
-                root = LeftRotate(root);
-            //printf("Completed rotation(1)!\n");
-            root = Demote(root);
-            return root;
-        }
         else //y is a 1-child (double rotation case)
         {
             if (f)
             {
-                x = LeftRotate(x);
+                root->left = LeftRotate(x);
                 root = RightRotate(root);
+                // Demote( root->right);
             }
             else
             {
-                x = RightRotate(x);
+                root->right = RightRotate(x);
                 root = LeftRotate(root);
+                // Demote( root->left);
             }
             //printf("Completed rotation(2)!\n");
-            x = Demote(x);
-            root = Demote(root);
-            return Promote(y);
+            Demote(root->left);
+            Demote( root->right);
+            return Promote(root);
         }
     }
     else
@@ -316,15 +309,12 @@ TreeNode *Delete(TreeNode *R, int key)
 int main()
 {
     struct node *root = NULL;
-    printf("Enter the number you want to insert, Please press Q to quit the sequence of Inserting the number \n");
-    char x = 'A';
-    while (x != 'Q')
+    printf("Enter the number you want to insert, Please press -1 to quit the sequence of Inserting the number \n");
+    int x = 1;
+    while ( x<=10)
     {
-        scanf(" %c", &x);
-        if (x == 'Q')
-            break;
-        else
-            root = insert(root, x - '0');
+        root = insert(root, x);
+        x++;
     }
     inorder_traversal(root);
 }
