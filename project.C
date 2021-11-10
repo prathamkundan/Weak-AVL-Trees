@@ -81,6 +81,10 @@ TreeNode *RightRotate(TreeNode *z)
     z->parent = x;
     if (z->left)
         z->left->parent = z; // Ensuring correctness of parents
+    if (pz){
+        if(x->value<pz->value)pz->left = x;
+        else pz->right = x;
+    }
     return x;
 }
 
@@ -97,6 +101,10 @@ TreeNode *LeftRotate(TreeNode *z)
     z->parent = x;
     if (z->right)
         z->right->parent = z; // Ensuring correctness of parents
+    if (pz){
+        if(x->value<pz->value)pz->left = x;
+        else pz->right = x;
+    }
     return x;
 }
 
@@ -109,6 +117,7 @@ int FindRank(TreeNode *N)
 // Utility function to check if a Node is A,B-Node
 bool isABnode(TreeNode *N, int A, int B)
 {
+    if (N==NULL)return false; // minor change to avoid exceptions
     bool c1 = ((FindRank(N) - FindRank(N->right) == A) && (FindRank(N) - FindRank(N->left) == B));
     bool c2 = ((FindRank(N) - FindRank(N->right) == B) && (FindRank(N) - FindRank(N->left) == A));
     if (c1 || c2)
@@ -125,6 +134,14 @@ bool isAchild(TreeNode *N, int A)
 }
 
 /*
+    Utility function to check if a node is a leaf
+*/
+bool isLeaf (TreeNode* N){
+    if (N->left==NULL && N->right == NULL)return true;
+    return false;
+}
+
+/*
     Function to write inorder traversal of Binary Search Tree
     We will include something later to help us know structure of the tree like giving timestamp
 */
@@ -133,8 +150,18 @@ void inorder_traversal(struct node *root)
     if (root == NULL)
         return;
     inorder_traversal(root->left);
-    printf("%d->%d\n ", root->value, root->rank);
+    printf("%d->%d ", root->value, root->rank);
     inorder_traversal(root->right);
+}
+
+/*
+    Utility function to free memory and remove a node
+*/
+void Remove(TreeNode* N){
+    TreeNode* P = N->parent;
+    if (P->left == N)P->left = NULL;
+    else P->right= NULL;
+    free(N);
 }
 
 /*
@@ -142,14 +169,10 @@ void inorder_traversal(struct node *root)
 */
 TreeNode *search(TreeNode *R, int key)
 {
-    if (R == NULL)
-        return NULL;
-    if (R->value == key)
-        return R;
-    if (R->value > key)
-        return search(R->left, key);
-    if (R->value < key)
-        return search(R->right, key);
+    if (R->value == key) return R;
+    else if (R->value > key) return search(R->left, key);
+    else if (R->value < key) return search(R->right, key);
+    else return NULL;
 }
 
 /*
@@ -281,40 +304,111 @@ struct node *insert(struct node *root, int number)
     Function to delete a node from a WAVL tree and perform bottom up rebalancing
 */
 
-TreeNode *Delete(TreeNode *R, int key)
-{
-    TreeNode *N = search(R, key);
-    if (N != NULL)
-    {
-        if (N->rank == 0)
-        {
-            // More code here
+TreeNode* Delete(TreeNode* R, int key){
+    TreeNode* N = search(R, key);
+    if (N!=NULL){
+        if (N->rank == 0){
+            if (N->parent ==NULL){
+                free(N);
+                return NULL;
+            };
+            TreeNode* X;
+            if (isAchild(N,1))X = N->parent;
+            else if(isAchild(N,2))X = N;
+            N->rank = -1;
+            if (isABnode(X,2,2)){
+                X = Demote(X);
+            }
+            TreeNode* Y = Sibling(X);
+            while (isAchild(X,3) && (isABnode(Y,2,2) || isAchild(Y,2))){
+                if (isAchild(Y,2))X->parent = Demote(X->parent);
+                else {
+                    X->parent = Demote(X->parent);
+                    Y = Demote(Y);
+                }
+                X = X->parent;
+                Y = Sibling(X);
+            }
+            if (isABnode(X->parent,1,3) && !(isABnode(Y,2,2))){
+                if (X->parent->left == X){
+                    TreeNode* Z = X->parent;
+                    TreeNode* V = Y->left;
+                    TreeNode* W = Y->right;
+                    if (isAchild(W,1)){
+                        Y = Promote(Y);
+                        Z = Demote(Z);
+                        Z = LeftRotate(Z);
+                        Remove(N);
+                        if (isLeaf(Z->left))Z->left = Demote(Z->left);
+                        if (Z->parent==NULL)return Z;
+                        else return R;
+                    }
+                    else if (isAchild(W,2)){
+                        Z = Demote(Z); Z = Demote(Z);
+                        Y = Demote(Y);
+                        V = Promote(V); V = Promote(V);
+                        Y = RightRotate(Y);
+                        Z = LeftRotate(Z);
+                        Remove(N);
+                        if (Z->parent==NULL)return Z;
+                        else return R;
+                    }
+                }
+                if (X->parent->right == X){
+                    TreeNode* Z = X->parent;
+                    TreeNode* V = Y->right;
+                    TreeNode* W = Y->left;
+                    if (isAchild(W,1)){
+                        Y = Promote(Y);
+                        Z = Demote(Z);
+                        Z = RightRotate(Z);
+                        Remove(N);
+                        if (isLeaf(Z->right))Z->right = Demote(Z->right);
+                        if (Z->parent==NULL)return Z;
+                        else return R;
+                    }
+                    else if (isAchild(W,2)){
+                        Z = Demote(Z); Z = Demote(Z);
+                        Y = Demote(Y);
+                        V = Promote(V); V = Promote(V);
+                        Y = LeftRotate(Y);
+                        Z = RightRotate(Z);
+                        Remove(N);
+                        if (Z->parent==NULL)return Z;
+                        else return R;
+                    }
+                }
+            }
+            else {
+                Remove(N);
+                return R;
+            }
         }
-        else
-        {
-            TreeNode *S = MinNode(N->right);
-            if (S == N || S == NULL)
-                S = MaxNode(N->left);
-            int k = S->value;
-            R = Delete(R, k);
-            TreeNode *S1 = search(R, key);
+        else {
+            TreeNode* S = MinNode(N->right);
+            if (S==N || S==NULL) S = MaxNode(N->left);
+            int k = S->value;  
+            R = Delete(R,k);
+            TreeNode* S1 = search(R,key);
             S1->value = k;
         }
         return R;
     }
-    else
-        return R;
+    else return R;
 }
+
 
 int main()
 {
     struct node *root = NULL;
-    printf("Enter the number you want to insert, Please press -1 to quit the sequence of Inserting the number \n");
-    int x = 1;
-    while ( x<=10)
-    {
-        root = insert(root, x);
-        x++;
-    }
+    for (int i=0;i<=10;i++)root = insert(root,i);
     inorder_traversal(root);
+    printf("\n");
+    for (int i=0;i<=10;i++){
+        root = Delete(root,i);
+        inorder_traversal(root);
+        printf("\n");
+    }
+    TreeNode* N = search(root, 6);
+    return 0;
 }
