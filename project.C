@@ -305,86 +305,123 @@ struct node *insert(struct node *root, int number)
 */
 
 TreeNode* Delete(TreeNode* R, int key){
-    TreeNode* N = search(R, key);
-    if (N!=NULL){
-        if (N->rank == 0){
-            if (N->parent ==NULL){
+    TreeNode* N = search(R, key);   // Search for the node to be deleted
+    if (N!=NULL){   
+        if (N->rank == 0){  // If node is a leaf node
+            if (N->parent ==NULL){  // If the remaining node is Root
                 free(N);
-                return NULL;
+                return NULL;    // Simply remove and return NULL
             };
+
             TreeNode* X;
-            if (isAchild(N,1))X = N->parent;
-            else if(isAchild(N,2))X = N;
+            if (isAchild(N,1))X = N->parent;    // If node to be deleted is a 1-child
+            else if(isAchild(N,2))X = N;    // If node to be deleted is a 2-child
             N->rank = -1;
-            if (isABnode(X,2,2)){
+            if (isABnode(X,2,2)){   // Demoting any 2,2 nodes we find
                 X = Demote(X);
             }
             TreeNode* Y = Sibling(X);
-            while (isAchild(X,3) && (isABnode(Y,2,2) || isAchild(Y,2))){
-                if (isAchild(Y,2))X->parent = Demote(X->parent);
+            
+            while (isAchild(X,3) && (isABnode(Y,2,2) || isAchild(Y,2))){    // While x is a 3-child and y is a 2-child or 2,2 repeat
+                if (isAchild(Y,2))X->parent = Demote(X->parent);    // If Y is sa 2-child demote parent of X
                 else {
-                    X->parent = Demote(X->parent);
-                    Y = Demote(Y);
+                    X->parent = Demote(X->parent);  // If y is a 2,2-node demote parent of X
+                    Y = Demote(Y);  // Demote Y as well
                 }
-                X = X->parent;
-                Y = Sibling(X);
+                X = X->parent;  // Change X
+                Y = Sibling(X); // Reset sibling of X
             }
-            if (isABnode(X->parent,1,3) && !(isABnode(Y,2,2))){
+
+            if (isABnode(X->parent,1,3) && !(isABnode(Y,2,2))){ // Once above condition is not satisfied
+                // Finishing rebalancing using rotaions
                 if (X->parent->left == X){
                     TreeNode* Z = X->parent;
                     TreeNode* V = Y->left;
                     TreeNode* W = Y->right;
-                    if (isAchild(W,1)){
-                        Y = Promote(Y);
+                    if (isAchild(W,1)){ // If right child of Y is a 1-child
+                        // perform single rotation and corresponding demotion steps
+                        Y = Promote(Y); 
                         Z = Demote(Z);
+                        
+                        // Left Rotate
                         Z = LeftRotate(Z);
-                        Remove(N);
-                        if (isLeaf(Z->left))Z->left = Demote(Z->left);
+
+                        Remove(N);// freeing memory and removing node
+
+                        if (isLeaf(Z->left))Z->left = Demote(Z->left);  // Incase a node becomes NULL
                         if (Z->parent==NULL)return Z;
                         else return R;
                     }
-                    else if (isAchild(W,2)){
+                    else if (isAchild(W,2)){    // If right child of Y is a 2-child
+                        // Perform double rotation and corresponding demotion steps
                         Z = Demote(Z); Z = Demote(Z);
                         Y = Demote(Y);
                         V = Promote(V); V = Promote(V);
+                        
+                        // Double Rotation
                         Y = RightRotate(Y);
                         Z = LeftRotate(Z);
-                        Remove(N);
-                        if (Z->parent==NULL)return Z;
+                        
+                        Remove(N); // freeing memory and removing node
+
+                        // Rebalancing with promotion
+                        // if (isABnode(Z->left,1,1) && !isLeaf(Z->left))Z->left = Promote(Z->left);
+                        // else if (isABnode(Z->right,1,1) && !isLeaf(Z->right))Z->right = Promote(Z->right);
+                        
+                        if (Z->parent==NULL)return Z;   // Incase the top of the rebalance becomes the root
                         else return R;
                     }
                 }
-                if (X->parent->right == X){
+                // Mirror case of 1st case
+                if (X->parent->right == X){// If right child of Y is a 1-child
+                    // perform single rotation and corresponding demotion steps
                     TreeNode* Z = X->parent;
                     TreeNode* V = Y->right;
                     TreeNode* W = Y->left;
                     if (isAchild(W,1)){
                         Y = Promote(Y);
                         Z = Demote(Z);
+                        
+                        // Right Rotation
                         Z = RightRotate(Z);
-                        Remove(N);
-                        if (isLeaf(Z->right))Z->right = Demote(Z->right);
-                        if (Z->parent==NULL)return Z;
+                        
+                        Remove(N); // freeing memory and removing node
+
+                        if (isLeaf(Z->right))Z->right = Demote(Z->right);   // Incase a node becomes NULL
+                        if (Z->parent==NULL)return Z; // Incase the top of the rebalance becomes the root
                         else return R;
                     }
-                    else if (isAchild(W,2)){
+                    else if (isAchild(W,2)){// If left child of Y is a 2-child 
+                        // Perform double rotation and corresponding demotion steps
                         Z = Demote(Z); Z = Demote(Z);
                         Y = Demote(Y);
                         V = Promote(V); V = Promote(V);
+                        
+                        // Double Rotation
                         Y = LeftRotate(Y);
                         Z = RightRotate(Z);
-                        Remove(N);
-                        if (Z->parent==NULL)return Z;
+                        
+                        Remove(N);  // freeing memory and removing node
+                        
+                        // Rebalancing with promotion
+                        // if (isABnode(Z->right,1,1) && !isLeaf(Z->right))Z->right = Promote(Z->right);
+                        // else if (isABnode(Z->left,1,1) && !isLeaf(Z->left))Z->left = Promote(Z->left);
+                        
+                        if (Z->parent==NULL)return Z;   // Incase the top of the rebalance becomes the root
                         else return R;
                     }
                 }
             }
-            else {
-                Remove(N);
+            else { // Incase no rebalancing is needed
+                Remove(N);  // freeing memory and removing node
                 return R;
             }
         }
-        else {
+        else {  // Incase a node is not leaf node
+
+            // We delete a successor/predecessor leaf node
+            // We then replace the value of the deleted node with the value
+        
             TreeNode* S = MinNode(N->right);
             if (S==N || S==NULL) S = MaxNode(N->left);
             int k = S->value;  
@@ -409,6 +446,5 @@ int main()
         inorder_traversal(root);
         printf("\n");
     }
-    TreeNode* N = search(root, 6);
     return 0;
 }
