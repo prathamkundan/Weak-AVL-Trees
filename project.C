@@ -221,13 +221,15 @@ TreeNode *Sibling(TreeNode *N)
     from then on we perform Bottom's up rebalancing up the tree
     1. If node is 0,1 , we do promote and move up
     2. If node is 0,2
-            < Pranav Work >
-    3. If above two are not specified , then that node is balanced, move up the tree, for Proof, Check Report Page No.-
+            
+    3. If above two are not specified , then that node is balanced, move up the tree, 
 */
 struct node *insert(struct node *root, int number)
 {
+    // We get to point where we have to insert the number
     if (root == NULL)
         return GetNode(number);
+    // otherwise we insert on proper subtree depending on the conditions
     else if (number > root->value)
     {
         root->right = insert(root->right, number);
@@ -238,11 +240,13 @@ struct node *insert(struct node *root, int number)
         root->left = insert(root->left, number);
         root->left->parent = root;
     }
+    // until my node is 0,1 we promote and move up
     if (isABnode(root, 0, 1))
     {
         // root = Promote(root);
         return Promote(root);
     }
+    // if node is 0,2, then we find the 0 child of root and rotate it to make it root and then do proper demotions and promotions
     else if (isABnode(root, 0, 2)) //Enter if root is a 0,2 node
     {
         int f; //flag to represent how z(root-(0,2) node), x(child of z), y(1-child or 2-child) are connected
@@ -259,7 +263,8 @@ struct node *insert(struct node *root, int number)
             x = root->left;
             y = x->right;
         }
-        if (y == NULL || isAchild(y, 2)) //y is NULL (single rotation case)
+        // y is null or is a 2 child, we use single rotations case as demonstrated in the paper
+        if (y == NULL || isAchild(y, 2))  (single rotation case)
         {
             // I think here is the error
             if (f)
@@ -276,6 +281,7 @@ struct node *insert(struct node *root, int number)
             // root = Demote(root);
             return root;
         }
+        // if y is 1 child ,we use double rotations case 
         else //y is a 1-child (double rotation case)
         {
             if (f)
@@ -296,6 +302,7 @@ struct node *insert(struct node *root, int number)
             return Promote(root);
         }
     }
+    // we have found the node where WAVL rule is not violated , just go up from here
     else
         return root;
 }
