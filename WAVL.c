@@ -169,7 +169,16 @@ void Remove(TreeNode* N){
 */
 TreeNode *search(TreeNode *R, int key)
 {
-    if (R->value == key) return R;
+    if(R == NULL)
+    {
+        printf("%d is absent in the WAVL tree!\n", key);
+        return R;
+    }
+    else if (R->value == key)
+    {
+        printf("%d has been found! If you chose option D, then element %d is now deleted!\n", key,key);
+        return R;
+    }
     else if (R->value > key) return search(R->left, key);
     else if (R->value < key) return search(R->right, key);
     else return NULL;
@@ -221,8 +230,8 @@ TreeNode *Sibling(TreeNode *N)
     from then on we perform Bottom's up rebalancing up the tree
     1. If node is 0,1 , we do promote and move up
     2. If node is 0,2
-            
-    3. If above two are not specified , then that node is balanced, move up the tree, 
+
+    3. If above two are not specified , then that node is balanced, move up the tree,
 */
 struct node *insert(struct node *root, int number)
 {
@@ -281,7 +290,7 @@ struct node *insert(struct node *root, int number)
             // root = Demote(root);
             return root;
         }
-        // if y is 1 child ,we use double rotations case 
+        // if y is 1 child ,we use double rotations case
         else //y is a 1-child (double rotation case)
         {
             if (f)
@@ -320,7 +329,7 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
         X = Demote(X);
     }
     TreeNode* Y = Sibling(X);
-    
+
     while (isAchild(X,3) && (isABnode(Y,2,2) || isAchild(Y,2))){    // While x is a 3-child and y is a 2-child or 2,2 repeat
         if (isAchild(Y,2))X->parent = Demote(X->parent);    // If Y is sa 2-child demote parent of X
         else {
@@ -339,9 +348,9 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
             TreeNode* W = Y->right;
             if (isAchild(W,1)){ // If right child of Y is a 1-child
                 // perform single rotation and corresponding demotion steps
-                Y = Promote(Y); 
+                Y = Promote(Y);
                 Z = Demote(Z);
-                
+
                 // Left Rotate
                 Z = LeftRotate(Z);
 
@@ -356,17 +365,17 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
                 Z = Demote(Z); Z = Demote(Z);
                 Y = Demote(Y);
                 V = Promote(V); V = Promote(V);
-                
+
                 // Double Rotation
                 Y = RightRotate(Y);
                 Z = LeftRotate(Z);
-                
+
                 Remove(N); // freeing memory and removing node
 
                 // Rebalancing with promotion
                 // if (isABnode(Z->left,1,1) && !isLeaf(Z->left))Z->left = Promote(Z->left);
                 // else if (isABnode(Z->right,1,1) && !isLeaf(Z->right))Z->right = Promote(Z->right);
-                
+
                 if (Z->parent==NULL)return Z;   // Incase the top of the rebalance becomes the root
                 else return R;
             }
@@ -380,32 +389,32 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
             if (isAchild(W,1)){
                 Y = Promote(Y);
                 Z = Demote(Z);
-                
+
                 // Right Rotation
                 Z = RightRotate(Z);
-                
+
                 Remove(N); // freeing memory and removing node
 
                 if (isLeaf(Z->right))Z->right = Demote(Z->right);   // Incase a node becomes NULL
                 if (Z->parent==NULL)return Z; // Incase the top of the rebalance becomes the root
                 else return R;
             }
-            else if (isAchild(W,2)){// If left child of Y is a 2-child 
+            else if (isAchild(W,2)){// If left child of Y is a 2-child
                 // Perform double rotation and corresponding demotion steps
                 Z = Demote(Z); Z = Demote(Z);
                 Y = Demote(Y);
                 V = Promote(V); V = Promote(V);
-                
+
                 // Double Rotation
                 Y = LeftRotate(Y);
                 Z = RightRotate(Z);
-                
+
                 Remove(N);  // freeing memory and removing node
-                
+
                 // Rebalancing with promotion
                 // if (isABnode(Z->right,1,1) && !isLeaf(Z->right))Z->right = Promote(Z->right);
                 // else if (isABnode(Z->left,1,1) && !isLeaf(Z->left))Z->left = Promote(Z->left);
-                
+
                 if (Z->parent==NULL)return Z;   // Incase the top of the rebalance becomes the root
                 else return R;
             }
@@ -423,7 +432,7 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
 
 TreeNode* Delete(TreeNode* R, int key){
     TreeNode* N = search(R, key);   // Search for the node to be deleted
-    if (N!=NULL){   
+    if (N!=NULL){
         if (N->rank == 0){  // If node is a leaf node
             if (N->parent ==NULL){  // If the remaining node is Root
                 free(N);
@@ -453,17 +462,63 @@ TreeNode* Delete(TreeNode* R, int key){
     else return R;
 }
 
+void interface(TreeNode* root)
+{
+    char control='\n';
+    int number;
+    TreeNode *required_node=NULL;
+    while(1)
+    {
+        printf("Enter:\nI to insert\nD to delete\nT to see the inorder traversal along with the corresponding rank of each element\nS to search for a given element\nQ to quit\n");
+        while(control=='\n') scanf("%c", &control);
+        switch(control)
+        {
+            case 'I':
+            printf("Please enter how many elements are to be inserted in the WAVL tree: ");
+            scanf("%d", &number);
+            printf("Please enter the elements to be inserted(space-separated): ");
+            for(int i=0;i<number;i++)
+            {
+                int element;
+                scanf("%d", &element);
+                root = insert(root,element);
+            }
+            break;
+
+            case 'D':
+            printf("Please enter the element you wish to delete from the WAVL tree: ");
+            scanf("%d", &number);
+            root = Delete(root, number);
+            break;
+
+            case 'T':
+            printf("The inorder traversal is as follows:\n");
+            inorder_traversal(root);
+            printf("\n");
+            break;
+
+            case 'S':
+            printf("Please enter the element you would like to search for: ");
+            scanf("%d", &number);
+            required_node = search(root, number);
+            break;
+
+            case 'Q':
+            return;
+
+            default:
+            printf("Invalid input!\n");
+        }
+        control = '\n';
+
+    }
+
+}
+
 
 int main()
 {
     struct node *root = NULL;
-    for (int i=0;i<=10;i++)root = insert(root,i);
-    inorder_traversal(root);
-    printf("\n");
-    for (int i=0;i<=10;i++){
-        root = Delete(root,i);
-        inorder_traversal(root);
-        printf("\n");
-    }
+    interface(root);
     return 0;
 }
