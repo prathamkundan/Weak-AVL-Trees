@@ -128,6 +128,7 @@ bool isABnode(TreeNode *N, int A, int B)
 // Utility function to check if a Node is A-child
 bool isAchild(TreeNode *N, int A)
 {
+    if (N == NULL) return false;
     if (FindRank(N->parent) - FindRank(N) == A)
         return true;
     return false;
@@ -137,7 +138,7 @@ bool isAchild(TreeNode *N, int A)
     Utility function to check if a node is a leaf
 */
 bool isLeaf (TreeNode* N){
-    if (N->left==NULL && N->right == NULL)return true;
+    if (FindRank(N->left) == -1 && FindRank(N->right) == -1)return true;
     return false;
 }
 
@@ -360,7 +361,7 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
                 if (Z->parent==NULL)return Z;
                 else return R;
             }
-            else if (isAchild(W,2)){    // If right child of Y is a 2-child
+            else if (isAchild(W,2) || W == NULL){    // If right child of Y is a 2-child
                 // Perform double rotation and corresponding demotion steps
                 Z = Demote(Z); Z = Demote(Z);
                 Y = Demote(Y);
@@ -399,7 +400,7 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
                 if (Z->parent==NULL)return Z; // Incase the top of the rebalance becomes the root
                 else return R;
             }
-            else if (isAchild(W,2)){// If left child of Y is a 2-child
+            else if (isAchild(W,2) || W == NULL){// If left child of Y is a 2-child
                 // Perform double rotation and corresponding demotion steps
                 Z = Demote(Z); Z = Demote(Z);
                 Y = Demote(Y);
@@ -432,34 +433,32 @@ TreeNode* DeleteRebalance(TreeNode* N, TreeNode* R){
 
 TreeNode* Delete(TreeNode* R, int key){
     TreeNode* N = search(R, key);   // Search for the node to be deleted
-    if (N!=NULL){
-        if (N->rank == 0){  // If node is a leaf node
-            if (N->parent ==NULL){  // If the remaining node is Root
-                free(N);
-                return NULL;    // Simply remove and return NULL
-            }
-            R = DeleteRebalance(N,R);
+    if (N==NULL) return R;
+    if (N->rank == 0){  // If node is a leaf node
+        if (N->parent ==NULL){  // If the remaining node is Root
+            free(N);
+            return NULL;    // Simply remove and return NULL
         }
-        else {  // Incase a node is not leaf node
-
-            // We delete a successor/predecessor leaf node
-            // We then replace the value of the deleted node with the value
-            TreeNode* S = MinNode(N->right);
-            if (S==NULL) S = MaxNode(N->left);
-            N->value = S->value;
-            S->value = key;
-            if (S->rank != 0){
-                TreeNode* K = MinNode(S->right);
-                if (K==NULL) K = MaxNode(S->left);
-                S->value = K->value;
-                K->value = key;
-                S = K;
-            }
-            R = DeleteRebalance(S,R);
-        }
-        return R;
+        R = DeleteRebalance(N,R);
     }
-    else return R;
+    else {  // Incase a node is not leaf node
+
+        // We delete a successor/predecessor leaf node
+        // We then replace the value of the deleted node with the value
+        TreeNode* S = MinNode(N->right);
+        if (S==NULL) S = MaxNode(N->left);
+        N->value = S->value;
+        S->value = key;
+        if (S->rank != 0){
+            TreeNode* K = MinNode(S->right);
+            if (K==NULL) K = MaxNode(S->left);
+            S->value = K->value;
+            K->value = key;
+            S = K;
+        }
+        R = DeleteRebalance(S,R);
+    }
+    return R;
 }
 
 void interface(TreeNode* root)
